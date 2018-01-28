@@ -19,14 +19,14 @@ namespace hw {
 	void network_manager_node::connect_input(sprockit::sim_parameters* params,
 												int src_outport,
 												int dst_inport,
-												event_handler* payload_handler) {
+												event_link* payload_handler) {
 		inport_handler_[dst_inport] = payload_handler;
 	};
 
 	void network_manager_node::connect_output(sprockit::sim_parameters* params,
 												int src_outport,
 												int dst_inport,
-												event_handler* payload_handler) {
+												event_link* payload_handler) {
 		outport_handler_[src_outport] = payload_handler;
 	};
 
@@ -60,7 +60,7 @@ namespace hw {
 			std::vector<int>& optical_inout_connectivity = connectivity_matrix[i];
 			optical_configuration_event* configuration = new optical_configuration_event();
 			configuration->set_optical_configurations(optical_inout_connectivity);
-			send_to_link(outport_handler_[i], configuration);
+			outport_handler_[i]->send(configuration);
 		}
 	};
 

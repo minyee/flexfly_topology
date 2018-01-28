@@ -53,7 +53,7 @@ namespace hw {
 	void flexfly_optical_network::connect_input(sprockit::sim_parameters* params, 
                               					int src_outport, 
                               					int dst_inport,
-                              					event_handler* credit_handler) {
+                              					event_link* credit_handler) {
  		int input_port = dst_inport;
  		inport_handler_[input_port] = credit_handler;
  		//std::cout << "is flexfly_optical_network's connect_input function ever called? " << std::endl;
@@ -64,7 +64,7 @@ namespace hw {
 	void flexfly_optical_network::connect_output(sprockit::sim_parameters* params, 
                               					int src_outport, 
                               					int dst_inport,
-                              					event_handler* payload_handler) {
+                              					event_link* payload_handler) {
 		//std::cout << "src_outport: " << std::to_string(src_outport) << " and dst_inport: " << std::to_string(dst_inport) << std::endl;
 		//std::cout << "src_outport: " << std::to_string(src_outport) << " and dst_inport: " << std::to_string(dst_inport) << std::endl;
  		if (src_outport < 0 || src_outport >= num_ports_)
@@ -110,7 +110,7 @@ namespace hw {
 			int src_switch = ftop_simplified_->node_to_switch(src_node);
 			int outport;
 			ftop_simplified_->minimal_route_to_switch_optical(src_switch, dst_switch, outport);
-			send_to_link(outport_handler_[outport], ev);
+			outport_handler_[outport]->send(ev);
 		}
 		
 		//send_to_link(outport_handler_[], fpacket);
@@ -137,7 +137,7 @@ namespace hw {
    				int choice = rand() % size;
    				outport = outport_options_[src_group][dst_group][choice];
 			}
-			send_to_link(outport_handler_[outport], ev);
+			outport_handler_[outport]->send(ev);
 		}
 	};
 	/*

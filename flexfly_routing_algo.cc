@@ -240,7 +240,7 @@ void clear_path_collections(std::vector<flexfly_path *> &path_collection,
 void print_switch_link(switch_link* sl) {
 	if (sl) {
 		std::string link_type = "";
-		if (sl->type == flexfly_topology::Link_Type::electrical)
+		if (sl->type == Electrical)
 			link_type += "ELECTRICAL";
 		else 
 			link_type += "OPTICAL";

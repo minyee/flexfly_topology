@@ -1,10 +1,10 @@
-#include <sstmac/common/event_handler.h>
+//#include <sstmac/common/event_handler.h>
 #include <sstmac/common/event_scheduler.h>
 #include <sstmac/common/messages/sst_message_fwd.h>
 #include <sstmac/hardware/nic/nic_fwd.h>
 #include <sstmac/hardware/switch/network_switch.h>
 #include <sstmac/hardware/interconnect/interconnect_fwd.h>
-#include <sprockit/unordered.h>
+
 #include "flexfly_topology.h"
 #include "flexfly_topology_simplified.h"
 
@@ -40,13 +40,13 @@ class my_logp_switch :
 
   virtual ~my_logp_switch();
 
-  void connect_output(sprockit::sim_parameters *params,
+  virtual void connect_output(sprockit::sim_parameters *params,
                       int src_outport, int dst_inport,
-                      event_handler* handler) override;
+                      event_link* handler) override;
 
-  void connect_input(sprockit::sim_parameters *params,
+  virtual void connect_input(sprockit::sim_parameters *params,
                      int src_outport, int dst_inport,
-                     event_handler* handler) override;
+                     event_link* handler) override;
 
   link_handler* payload_handler(int port) const override;
 
@@ -81,8 +81,8 @@ class my_logp_switch :
 
   int nodes_per_switch_;
 
-  std::vector<event_handler*> neighbors_;
-  std::vector<event_handler*> nics_;
+  std::vector<event_link*> neighbors_;
+  std::vector<event_link*> nics_;
 
   flexfly_topology* ftop_;
   flexfly_topology_simplified* ftop_simplified_;

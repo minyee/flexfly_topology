@@ -17,12 +17,10 @@ namespace hw {
 
 	flexfly_electrical_switch::flexfly_electrical_switch(sprockit::sim_parameters* params,
     														uint64_t id,
-    														event_manager* mgr,
-    														device_id::type_t ty) : 
+    														event_manager* mgr) : 
 																network_switch(params, 
 																				id,
-																				mgr, 
-																				device_id::logp_overlay) {
+																				mgr) {
 		my_addr_ = params->get_int_param("id");
 		radix_ = params->get_int_param("total_radix");
 		switches_per_group_ = params->get_int_param("switches_per_group");
@@ -82,7 +80,7 @@ namespace hw {
 	void flexfly_electrical_switch::connect_input(sprockit::sim_parameters* params, 
                               						int src_outport, 
                               						int dst_inport,
-                              						event_handler* credit_handler) {
+                              						event_link* credit_handler) {
 		//if (dst_inport < 0 || dst_inport >= radix_)
 		//	spkt_abort_printf("Invalid inport %d in flexfly_electrical_switch::connect_input", dst_inport);
 		
@@ -92,7 +90,7 @@ namespace hw {
 	void flexfly_electrical_switch::connect_output(sprockit::sim_parameters* params, 
                               						int src_outport, 
                               						int dst_inport,
-                              						event_handler* payload_handler) {
+                              						event_link* payload_handler) {
 		//if (src_outport < 0 || src_outport >= radix_)
 		//	spkt_abort_printf("Invalid inport %d in flexfly_electrical_switch::connect_output", src_outport);
 
@@ -129,10 +127,10 @@ namespace hw {
   			switch_id dst_swid = ftop_->node_to_switch(dst);
   			if (dst_swid == my_addr_) {
   				int outport = dst - (my_addr_ * nodes_per_switch_) + switches_per_group_;
-  				send_to_link(outport_handlers_[outport], fpacket->get_pisces_packet());
+  				outport_handlers_[outport]->send(fpacket->get_pisces_packet());
   				return;
   			}
-  			send_to_link(outport_handlers_[fpacket->next_outport()], fpacket);
+  			outport_handlers_[fpacket->next_outport()]->send(fpacket);
   		} else {
   			pisces_default_packet* msg = safe_cast(pisces_default_packet, ev);
   			int num_bits = msg->num_bytes();
@@ -146,15 +144,15 @@ namespace hw {
 			int src_group = ftop_simplified_->group_from_swid(src_switch);
 			if (dst_switch == my_addr_) {
 				int offset = dst % nodes_per_switch_;
-				send_delayed_to_link(electrical_delay, outport_handlers_[offset + switches_per_group_], msg);
+				outport_handlers_[offset + switches_per_group_]->send_extra_delay(electrical_delay, msg);
 				//std::cout << "Some message actually got delivered to its destination" << std::endl;
 			} else if (dst_group == ftop_simplified_->group_from_swid(my_addr_)) {
 				int outport = ftop_simplified_->get_output_port(my_addr_, dst_switch);
 				assert(outport >= 0);
-				send_delayed_to_link(electrical_delay, outport_handlers_[outport], ev);
+				outport_handlers_[outport]->send_extra_delay(electrical_delay, ev);
 			} else {
 				assert(dst_group != ftop_simplified_->group_from_swid(my_addr_));
-				send_delayed_to_link(optical_delay, outport_handlers_[switches_per_group_ - 1], msg);
+				outport_handlers_[switches_per_group_ - 1]->send_extra_delay(optical_delay, msg);
 			}
   		}
 	}
@@ -203,7 +201,7 @@ namespace hw {
 			ftop_->route_minimal(my_addr_, ftop_->node_to_switch(msg->toaddr()), fpacket);
 			int next_port = fpacket->next_outport();
 			//std::cout << "Next port is: " + std::to_string(next_port) << std::endl;
-			send_delayed_to_link(electrical_delay, outport_handlers_[next_port], fpacket);
+			outport_handlers_[next_port]->send_extra_delay(electrical_delay, fpacket);
 		} else { 
 			// In this case, we are in the simplified
 			int src_group = ftop_simplified_->group_from_swid(src_switch);
@@ -211,7 +209,7 @@ namespace hw {
 			routable::path new_path;
 			ftop_simplified_->minimal_route_to_switch(my_addr_, dst_switch, new_path);
 			int outport = new_path.outport();
-			send_delayed_to_link(electrical_delay, outport_handlers_[outport], ev);
+			outport_handlers_[outport]->send_extra_delay(electrical_delay, ev);
 			return;
 			/*
 			if (src_group == dst_group) {
@@ -236,7 +234,7 @@ namespace hw {
 		//std::cout << "The credits port is " << std::to_string(msg->port()) << std::endl;
 		//std::cout << "The num credit is " << std::to_string(msg->num_credits()) << std::endl;
 		//std::cout << "received an message at electrical_switch" << std::endl;
-		send_delayed_to_link(credit_latency_, inport_handlers_[msg->port()], ev);
+		inport_handlers_[msg->port()]->send_extra_delay(credit_latency_, ev);
 		//delete msg;
 		return;
 	};
@@ -245,11 +243,11 @@ namespace hw {
 		pisces_credit* msg = safe_cast(pisces_credit, ev);
 		msg->port();
 		//std::cout << "received an message at electrical_switch" << std::endl;
-		send_delayed_to_link(credit_latency_, inport_handlers_[msg->port()], ev);
+		inport_handlers_[msg->port()]->send_extra_delay(credit_latency_,  ev);
 		return;
 	};
 
-	//void flexfly_electrical_switch::send_credit(event_handler* ev, pisces_credit* pc) {
+	//void flexfly_electrical_switch::send_credit(event_link* ev, pisces_credit* pc) {
 
 	//}
 
@@ -261,14 +259,14 @@ namespace hw {
 		assert(ftop_simplified_->node_to_switch(node_id) == my_addr_);
 		int offset = node_id % nodes_per_switch_;
 		int outport = offset + switches_per_group_;
-		send_delayed_to_link(delay, outport_handlers_[outport], ev);
+		outport_handlers_[outport]->send_extra_delay(delay, ev);
 	}
 
 	void flexfly_electrical_switch::send_credit_to_node(uint32_t credit_amount, int node_id) {
 		assert(ftop_simplified_->node_to_switch(node_id) == my_addr_);
 		int port = switches_per_group_ + (node_id % nodes_per_switch_);
 		pisces_credit* pc = new pisces_credit(port, 0, credit_amount);
-		send_delayed_to_link(send_latency_ , inport_handlers_[port], pc);
+		inport_handlers_[port]->send_extra_delay(send_latency_ , pc);
 	}
 }
 }

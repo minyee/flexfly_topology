@@ -22,8 +22,7 @@ RegisterComponent("flexfly_electrical_switch | flexfly_electrical", network_swit
  
 flexfly_electrical_switch(sprockit::sim_parameters* params,
 							uint64_t id,
-							event_manager* mgr,
-							device_id::type_t ty = device_id::router);// : network_switch(params, id, mgr, ty);
+							event_manager* mgr);// : network_switch(params, id, mgr, ty);
  
 ~flexfly_electrical_switch();
 
@@ -41,7 +40,7 @@ virtual std::string to_string() const override {
 virtual void connect_output(sprockit::sim_parameters* params, 
                                 int src_outport, 
                                 int dst_inport, 
-                                event_handler* payload_handler) override;
+                                event_link* payload_handler) override;
 
 
 /**
@@ -54,7 +53,7 @@ virtual void connect_output(sprockit::sim_parameters* params,
 virtual void connect_input(sprockit::sim_parameters* params, 
                               int src_outport, 
                               int dst_inport,
-                              event_handler* credit_handler) override;
+                              event_link* credit_handler) override;
 
 /**
  * @brief credit_handler
@@ -71,6 +70,14 @@ virtual link_handler* credit_handler(int port) const override;
 virtual link_handler* payload_handler(int port) const override;
 
 virtual int queue_length(int port) const override;
+
+virtual timestamp send_latency(sprockit::sim_parameters* params) const override {
+  return send_latency_;
+};
+
+virtual timestamp credit_latency(sprockit::sim_parameters* params) const override {
+  return credit_latency_;
+};
 
 protected:
 
@@ -91,8 +98,8 @@ void get_link_params(sprockit::sim_parameters* switch_param);
 
 protected:
 router* router_;
-std::vector<event_handler*> inport_handlers_;
-std::vector<event_handler*> outport_handlers_;
+std::vector<event_link*> inport_handlers_;
+std::vector<event_link*> outport_handlers_;
 
 private:
 //uint64_t my_id_;

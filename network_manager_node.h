@@ -18,12 +18,12 @@ public:
 	virtual void connect_output(sprockit::sim_parameters* params,
 								int src_outport,
 								int dst_inport,
-								event_handler* payload_handler) override;
+								event_link* payload_handler) override;
 
 	virtual void connect_input(sprockit::sim_parameters* params,
 								int src_outport,
 								int dst_inport,
-								event_handler* credit_handler) override;
+								event_link* credit_handler) override;
 
 	virtual link_handler* credit_handler(int port) const override;
 
@@ -34,9 +34,9 @@ public:
 	virtual void execute(ami::COMP_FUNC func, event* data, callback* cb) override;
 
 private:
-	std::vector<event_handler*> outport_handler_;
+	std::vector<event_link*> outport_handler_;
 
-	std::vector<event_handler*> inport_handler_;
+	std::vector<event_link*> inport_handler_;
 	
 	int id_;
 	

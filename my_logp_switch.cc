@@ -26,7 +26,7 @@ namespace sstmac {
 namespace hw {
 
 my_logp_switch::my_logp_switch(sprockit::sim_parameters *params, uint64_t id, event_manager *mgr) :
-  network_switch(params, id, mgr, device_id::logp_overlay)
+  network_switch(params, id, mgr)
 {
   //sprockit::sim_parameters* link_params = params->get_namespace("link");
   //sprockit::sim_parameters* ej_params = params->get_namespace("ejection"); 
@@ -88,7 +88,7 @@ my_logp_switch::payload_handler(int port) const
 void
 my_logp_switch::connect_output(sprockit::sim_parameters *params,
                               int src_outport, int dst_inport,
-                              event_handler *mod) {
+                              event_link *mod) {
     node_id nid = src_outport;
     //std::cout << "What about now" << std::endl;
     switch_debug("Connecting my_LogP to NIC %d", nid);
@@ -104,7 +104,7 @@ my_logp_switch::connect_output(sprockit::sim_parameters *params,
 void
 my_logp_switch::connect_input(sprockit::sim_parameters *params,
                               int src_outport, int dst_inport,
-                              event_handler *mod)
+                              event_link *mod)
 {
   return;
 }
@@ -134,13 +134,13 @@ my_logp_switch::incoming_message(message* msg, node_id src, node_id dst)
       double net_intergroup_bw = num_links * optical_bw_;
       delay += (num_links * inv_optical_bw_ + 2 * inv_electrical_bw_) * num_bytes;
     }
-    send_delayed_to_link(delay, nics_[dst], msg);
+    nics_[dst]->send_extra_delay(delay, msg);
   } else {
     /*
         switch_debug("incoming message over %d hops with extra delay %12.8e and inj lat %12.8e: %s",
                num_hops, delay.sec(), dbl_inj_lat_.sec(), msg->to_string().c_str());
                */
-    send_to_link(nics_[dst], msg);
+    nics_[dst]->send(msg);
   }
   //
 }
@@ -178,7 +178,7 @@ my_logp_switch::outgoing_message(message* msg, node_id src, node_id dst)
   switch_debug("outgoing message over %d hops with extra delay %12.8e and inj lat %12.8e: %s",
                num_hops, delay.sec(), dbl_inj_lat_.sec(), msg->to_string().c_str());
                */
-  send_delayed_to_link(delay, dbl_inj_lat_, neighbors_[dst_switch], msg);
+  neighbors_[dst_switch]->send_extra_delay(delay + dbl_inj_lat_, msg);
 }
 
 void
@@ -197,7 +197,7 @@ my_logp_switch::bcast_local_message(message* msg, node_id src)
     bool local_src = nics_[src];
 
     if (local_dst){
-      sw::start_app_event* new_lev = lev->clone(i, src, dst_node);
+      //sw::start_app_event* new_lev = lev->clone(i, src, dst_node);
       //int num_hops = top_->num_hops_to_node(src, dst_node);
       switch_id src_switch = src / nodes_per_switch_;
       switch_id dst_switch = dst_node / nodes_per_switch_;
@@ -221,7 +221,7 @@ my_logp_switch::bcast_local_message(message* msg, node_id src)
         delay += (num_links * inv_optical_bw_ + 2 * inv_electrical_bw_) * num_bytes;
       }
       //send_to_link(dst_nic, new_lev);
-      send_delayed_to_link(delay, dst_nic, new_lev);
+      dst_nic->send_extra_delay(delay, lev);
     }
   }
   //this one not needed anymore
@@ -233,7 +233,7 @@ my_logp_switch::forward_bcast_message(message* msg, node_id dst)
 {
   int dst_switch = interconn_->node_to_logp_switch(dst);
   //only accumulate inj lat - exact hop latency gets added on the other side
-  send_delayed_to_link(timestamp(), dbl_inj_lat_, neighbors_[dst_switch], msg);
+  neighbors_[dst_switch]->send_extra_delay(dbl_inj_lat_, msg);
 }
 
 void

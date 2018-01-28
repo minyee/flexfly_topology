@@ -26,16 +26,17 @@
 namespace sstmac {
 namespace hw {
 
+#ifndef OPTICAL_SWITCH
+#define OPTICAL_SWITCH
 class optical_switch : public connectable_component {
   public:
   DeclareFactory(optical_switch,uint64_t,event_manager*)
 
   optical_switch(sprockit::sim_parameters* params, uint64_t id, event_manager* mgr) :
-    connectable_component(params,id,
-      device_id(params->get_int_param("id"),device_id::router),mgr) {
-    };
+    connectable_component(params,id,mgr) {
+  };
 };
-
+#endif
 /**
  * @brief The network_switch class
  * A class encapsulating a network switch that packets must traverse on the network.
@@ -73,8 +74,7 @@ RegisterComponent("flexfly_optical_network", optical_switch, flexfly_optical_net
   virtual void connect_output(sprockit::sim_parameters* params, 
                                 int src_outport, 
                                 int dst_inport, 
-                                event_handler* payload_handler) override;
-
+                                event_link* payload_handler) override;
 
   /**
    * @brief connect_input
@@ -86,7 +86,7 @@ RegisterComponent("flexfly_optical_network", optical_switch, flexfly_optical_net
   virtual void connect_input(sprockit::sim_parameters* params, 
                               int src_outport, 
                               int dst_inport,
-                              event_handler* credit_handler) override;
+                              event_link* credit_handler) override;
 
   /**
    * @brief credit_handler
@@ -106,6 +106,13 @@ RegisterComponent("flexfly_optical_network", optical_switch, flexfly_optical_net
     return my_addr_;
   }; 
 
+  virtual timestamp send_latency(sprockit::sim_parameters* params) const override {
+    return 0;
+  };
+
+  virtual timestamp credit_latency(sprockit::sim_parameters* params) const override{
+    return 0;
+  };
 
 public:
   void recv_payload(event* ev);
@@ -121,9 +128,9 @@ private:
   
   int num_ports_;
   
-  std::unordered_map<int,event_handler*> outport_handler_;
+  std::unordered_map<int,event_link*> outport_handler_;
   
-  std::unordered_map<int,event_handler*> inport_handler_;
+  std::unordered_map<int,event_link*> inport_handler_;
   // given an index, the value of the entry is the output port that said inport is currently connected to
   int switches_per_group_;
   

@@ -54,7 +54,7 @@ namespace hw {
 	void flexfly_optical_switch::connect_input(sprockit::sim_parameters* params, 
                               					int src_outport, 
                               					int dst_inport,
-                              					event_handler* credit_handler) {
+                              					event_link* credit_handler) {
 		if (dst_inport < 0 || dst_inport >= num_ports_)
 			spkt_abort_printf("Invalid inport %d in flexfly_optical_switch::connect_input", dst_inport);
  		inport_connections_[dst_inport] = src_outport;
@@ -67,7 +67,7 @@ namespace hw {
 	void flexfly_optical_switch::connect_output(sprockit::sim_parameters* params, 
                               					int src_outport, 
                               					int dst_inport,
-                              					event_handler* payload_handler) {
+                              					event_link* payload_handler) {
 		//std::cout << "src_outport: " << std::to_string(src_outport) << " and dst_inport: " << std::to_string(dst_inport) << std::endl;
 		//std::cout << "src_outport: " << std::to_string(src_outport) << " and dst_inport: " << std::to_string(dst_inport) << std::endl;
  		if (src_outport < 0 || src_outport >= num_ports_)
@@ -107,7 +107,7 @@ namespace hw {
 		assert(fpacket);
 		pisces_payload* msg = fpacket->get_pisces_packet();
 		int curr_outport = fpacket->next_outport();
-		send_to_link(outport_handler_[curr_outport], fpacket);
+		outport_handler_[curr_outport]->send(fpacket);
 		/*
 		pisces_payload* msg = safe_cast(pisces_payload, ev);
 		node_id dst_id = msg->toaddr();

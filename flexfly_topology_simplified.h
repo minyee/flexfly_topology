@@ -11,6 +11,7 @@
 #include <sstmac/hardware/topology/structured_topology.h>
 #include <unordered_map>
 #include "flexfly_packet.h"
+#include "flexfly_switch_link.h"
 //#include "data_structures.h"
 
 namespace sstmac{
@@ -19,17 +20,19 @@ namespace hw {
 #ifndef FLEXFLY_TOPOLOGY_SIMPLIFIED
 #define FLEXFLY_TOPOLOGY_SIMPLIFIED
 
+/*
 #ifndef SWITCH_LINK
 #define SWITCH_LINK
+enum Link_Type {Optical, Electrical};
 struct switch_link {
   switch_id src_sid;
   switch_id dest_sid; // switch_id of the destination switch
   int src_outport;
   int dest_inport; // port of the destination switch
-  structured_topology::Link_Type type; 
+  Link_Type type; 
 };
 #endif
-
+*/
 class flexfly_topology_simplified : public structured_topology {
 public:
 FactoryRegister("flexfly_simplified", topology, flexfly_topology_simplified, "This is simplified flexfly topology for Flexfly project");
@@ -273,8 +276,6 @@ public:
     routable::path& path) const override;
 
   virtual bool node_to_netlink(node_id nid, node_id& net_id, int& offset) const override;
-  
-  virtual void configure_metis(metis_config* configuration) const override;
 
   flexfly_topology_simplified(sprockit::sim_parameters* params); 
 

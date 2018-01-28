@@ -79,8 +79,8 @@ namespace hw {
        switch_id swid = group_offset + index;
        for (int target_index = index + 1; target_index < switches_per_group_; target_index++) {
          switch_id target_swid = group_offset + target_index;
-         connect_switches(swid, target_swid, Link_Type::electrical);
-         connect_switches(target_swid, swid, Link_Type::electrical);
+         connect_switches(swid, target_swid, Electrical);
+         connect_switches(target_swid, swid, Electrical);
        }
      }  
    }
@@ -91,8 +91,8 @@ namespace hw {
      for (int index = 0; index < switches_per_group_; index++) {
        switch_id swid = group_offset + index;
        switch_id optical_swid = num_groups_ * switches_per_group_;
-       connect_switches(swid, optical_swid, Link_Type::optical);
-       connect_switches(optical_swid, swid, Link_Type::optical);
+       connect_switches(swid, optical_swid, Optical);
+       connect_switches(optical_swid, swid, Optical);
      }
    }
  }
@@ -109,13 +109,6 @@ namespace hw {
   for (int i = 0; i < total_switches; i++) {
     routing_table_.resize(total_switches);
   }
- }
-
- void flexfly_topology_simplified::configure_metis(metis_config* configuration) const {
-	if (!configuration) {
-		return;
-	}
-	configuration->nvtxs = (idx_t) num_groups_ * switches_per_group_;
  }
 
  /**
@@ -235,7 +228,7 @@ void flexfly_topology_simplified::connected_outports(const switch_id src,
       conns[cidx].dst = current_switch_link->dest_sid;
       conns[cidx].src_outport = current_switch_link->src_outport; 
       conns[cidx].dst_inport = current_switch_link->dest_inport;
-      conns[cidx].link_type = current_switch_link->type;
+      //conns[cidx].link_type = current_switch_link->type;
       cidx++;
     }
   }
@@ -284,7 +277,7 @@ bool flexfly_topology_simplified::switch_id_slot_filled(switch_id sid) const {
       bool two_or_three = true; 
       
       for (switch_link* tmp_link : conn_vector ) {
-        if (tmp_link->type == electrical)
+        if (tmp_link->type == Electrical)
           continue;
       }
       return two_or_three ? 2 : 3;
@@ -343,7 +336,7 @@ bool flexfly_topology_simplified::switch_id_slot_filled(switch_id sid) const {
         message << "Dest switch_id: " << std::to_string(sl_ptr->dest_sid);
         message << " Dest inport: " << std::to_string(sl_ptr->dest_inport);
         message << " Link type: ";
-        if (sl_ptr->type == Link_Type::electrical) {
+        if (sl_ptr->type == Electrical) {
           message << "ELECTRICAL" << std::endl;
         } else {
           message << "OPTICAL" << std::endl;
