@@ -12,6 +12,7 @@
 #include "flexfly_topology_simplified.h"
 #include "connectivity_matrix.h"
 #include "flexfly_routing_algo.h"
+#include "link_stealing.h"
 
 namespace sstmac {
 namespace hw {
@@ -48,6 +49,28 @@ namespace hw {
     routing_table_[i].resize(num_groups_ * switches_per_group_);
   }
  	setup_flexfly_topology_simplified();
+
+  /*
+   * link_stealking algorithm is applied here to group_connectivity_matrix;
+   * begin
+   */
+    matrix_float float_mat;
+    std::string filename = "lulesh_512r_32g_res.txt";
+
+    read_float_matrix(filename, float_mat);
+    simple_rounding_down(float_mat, group_connectivity_matrix_);
+    std::cout << "hello from flexfly simplified topology" << std::endl;
+    vector_int row_constraints;
+    vector_int col_constraints;
+    row_constraints.resize(num_groups_);
+    col_constraints.resize(num_groups_);
+    std::fill(row_constraints.begin(), row_constraints.end(), num_groups_ - 1);
+    std::fill(col_constraints.begin(), col_constraints.end(), num_groups_ - 1);
+    massage_random(group_connectivity_matrix_, row_constraints, col_constraints);
+  /*
+   * end
+   */
+
   route_topology_minimal();
  }
 
@@ -617,7 +640,7 @@ bool flexfly_topology_simplified::switch_id_slot_filled(switch_id sid) const {
 
   /**
    * This function forms the virtual inter-group switch-pair connection
-   * so that route_topology_minimal can actually use this to 
+   * so that route_topology_minimal can actually use this to do some routing
    **/
   void flexfly_topology_simplified::form_virtual_intergroup_topology(std::vector<std::vector<switch_id>>& adjacency_list) {
     

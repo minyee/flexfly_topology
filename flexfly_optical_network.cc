@@ -23,8 +23,10 @@ namespace hw {
 		inport_handler_.reserve(num_ports_);
 		outport_handler_.reserve(num_ports_);
 		//ftop_ = safe_cast(flexfly_topology_simplified, topology::static_topology(params));
+
 		ftop_ = dynamic_cast<flexfly_topology *>(topology::static_topology(params));
 		if (ftop_ == nullptr) {
+			std::cout << "Flexfly optical network is working" << std::endl; 
 			ftop_simplified_ = safe_cast(flexfly_topology_simplified, topology::static_topology(params));
 			outport_options_.resize(num_groups_);
 			for (int i = 0; i < num_groups_; i++) {

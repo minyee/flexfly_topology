@@ -325,7 +325,7 @@ private:
 
  std::unordered_map<int, std::vector<int> > optical_inout_connectivity_;
 
- std::vector< std::vector<int> >  group_connectivity_matrix_;
+
 
  std::vector< std::vector<int> > distance_matrix_;
  /**
@@ -333,6 +333,7 @@ private:
   **/
 public:
  std::vector<std::vector<flexfly_path *>> routing_table_;
+ std::vector< std::vector<int> >  group_connectivity_matrix_;
  /**
   *
   **/

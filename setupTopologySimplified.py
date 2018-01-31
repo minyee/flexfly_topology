@@ -188,7 +188,7 @@ class FlexflyInterconnectSimplified:
 		lat = "%8.4f%s" % (num,units.strip())
 		switches = []
 		for i in range(nproc):
-			switch = sst.Component("my_logp %d" % i, "macro.my_logp_switch")
+			switch = sst.Component("logp %d" % i, "macro.logp_switch")
 			#switch = sst.Component("logp %d" % i, "macro.logp_switch")
 			switch.addParams(macroToCoreParams(switchParams))
 			switch.addParam("id", i)
