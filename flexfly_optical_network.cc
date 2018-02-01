@@ -32,7 +32,13 @@ namespace hw {
 			for (int i = 0; i < num_groups_; i++) {
 				outport_options_[i].resize(num_groups_);
 			}
-			ftop_simplified_->configure_optical_network(outport_options_);
+			/*
+			 * NEW TAKEN THIS ONE OUT CAUSE IT DOESN'T REALLY HELP? 01/31/2018
+			 */
+			//ftop_simplified_->configure_optical_network(outport_options_);
+			/*
+			 * NEW TAKEN THIS ONE OUT CAUSE IT DOESN'T REALLY HELP? 01/31/2018
+			 */
 		} else {
 			ftop_simplified_ = nullptr;
 		}
@@ -69,6 +75,8 @@ namespace hw {
                               					event_link* payload_handler) {
 		//std::cout << "src_outport: " << std::to_string(src_outport) << " and dst_inport: " << std::to_string(dst_inport) << std::endl;
 		//std::cout << "src_outport: " << std::to_string(src_outport) << " and dst_inport: " << std::to_string(dst_inport) << std::endl;
+ 		// /std::cout << "Optical Network flexfly_optical_networt connect_input" << std::to_string(dst_inport) << std::endl;
+ 		//std::cout << "Optical Network flexfly_optical_networt connect_input" << std::to_string(dst_inport) << std::endl;
  		if (src_outport < 0 || src_outport >= num_ports_)
 			spkt_abort_printf("Invalid inport %d in flexfly_optical_network::connect_output", src_outport);
  		int output_port = src_outport;
@@ -111,8 +119,11 @@ namespace hw {
 			int dst_switch = ftop_simplified_->node_to_switch(dst_node);
 			int src_switch = ftop_simplified_->node_to_switch(src_node);
 			int outport;
-			ftop_simplified_->minimal_route_to_switch_optical(src_switch, dst_switch, outport);
+			//ftop_simplified_->minimal_route_to_switch_optical(src_switch, dst_switch, outport);
+			assert(ftop_simplified_->minimal_route_special_flexfly(src_switch, dst_switch, my_addr_, outport));
+			outport = dst_switch;
 			outport_handler_[outport]->send(ev);
+			//outport_handler_[dst_switch]->send(ev);
 		}
 		
 		//send_to_link(outport_handler_[], fpacket);

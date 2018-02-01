@@ -35,7 +35,7 @@ class FlexflyInterconnectSimplified:
 		self.numGroups = int(self.optical_topology_params["groups"])
 		self.switchesPerGroup = int(self.optical_topology_params["switches_per_group"])
 		self.numElecSwitches = self.numGroups * self.switchesPerGroup
-		self.numSwitches = self.numElecSwitches + 1
+		self.numSwitches = self.numElecSwitches + 1 # Another one comes from the optical switch
 		self.nodesPerSwitch = int(self.optical_topology_params["nodes_per_switch"])
 		self.optical_switch_radix = self.numGroups
 		# really just equals to h in Kim's literature (num of global links per switch)

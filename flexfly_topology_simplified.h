@@ -325,7 +325,7 @@ private:
 
  std::unordered_map<int, std::vector<int> > optical_inout_connectivity_;
 
-
+ std::vector< std::vector<switch_id> > routing_table_2_;
 
  std::vector< std::vector<int> > distance_matrix_;
  /**
@@ -342,7 +342,7 @@ private:
 
  void setup_flexfly_topology_simplified();
 
- void connect_switches(switch_id src, switch_id dst, Link_Type ltype);
+ void connect_switches(switch_id src, int src_outport, switch_id dst, int dst_inport, Link_Type ltype);
 
  bool valid_switch_id(switch_id id) const {
     return id < (switches_per_group_ * num_groups_ + num_optical_switches_);
@@ -390,6 +390,10 @@ public:
  void configure_optical_network(std::vector<std::vector<std::vector<int>>>& outport_options) const; 
 
  void minimal_route_to_switch_optical(switch_id src, switch_id dst, int& outport_arg) const;
+
+
+
+ bool minimal_route_special_flexfly(switch_id src, switch_id dst, switch_id curr_id, int& outport_arg) const;
  
 };
 

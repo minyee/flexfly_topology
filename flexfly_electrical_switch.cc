@@ -24,6 +24,7 @@ namespace hw {
 		my_addr_ = params->get_int_param("id");
 		radix_ = params->get_int_param("total_radix");
 		switches_per_group_ = params->get_int_param("switches_per_group");
+
 		num_groups_ = params->get_int_param("num_groups");
 		nodes_per_switch_ = radix_ - switches_per_group_;
 		inport_handlers_.reserve(radix_);
@@ -49,6 +50,7 @@ namespace hw {
 		} else {
 			ftop_simplified_ = nullptr;
 		}
+		assert(ftop_simplified_->switches_per_group() == switches_per_group_);
 		init_links(params);
 	}
 
@@ -144,15 +146,21 @@ namespace hw {
 			int src_group = ftop_simplified_->group_from_swid(src_switch);
 			if (dst_switch == my_addr_) {
 				int offset = dst % nodes_per_switch_;
-				outport_handlers_[offset + switches_per_group_]->send_extra_delay(electrical_delay, msg);
+				outport_handlers_[offset + switches_per_group_]->send_extra_delay(electrical_delay, ev);
 				//std::cout << "Some message actually got delivered to its destination" << std::endl;
 			} else if (dst_group == ftop_simplified_->group_from_swid(my_addr_)) {
 				int outport = ftop_simplified_->get_output_port(my_addr_, dst_switch);
 				assert(outport >= 0);
 				outport_handlers_[outport]->send_extra_delay(electrical_delay, ev);
 			} else {
+				//std::cout << "enter" << std::endl;
 				assert(dst_group != ftop_simplified_->group_from_swid(my_addr_));
-				outport_handlers_[switches_per_group_ - 1]->send_extra_delay(optical_delay, msg);
+				int outport;
+				assert(ftop_simplified_->minimal_route_special_flexfly(src_switch, dst_switch, my_addr_, outport));
+				//std::cout << "outport is: " << std::to_string(outport) << std::endl;
+				assert(outport == (switches_per_group_ - 1));
+				outport_handlers_[outport]->send_extra_delay(optical_delay, msg);
+				//std::cout << "exit" << std::endl;
 			}
   		}
 	}
@@ -165,7 +173,7 @@ namespace hw {
 	void flexfly_electrical_switch::recv_nodal_payload(event* ev) {
 		// need to generate a new flexfly_packet here
 		pisces_default_packet* msg = safe_cast(pisces_default_packet, ev);
-		//std::cout << "received_nodal_payload?" << std::endl;
+		
 		//std::cout << "From node: " << std::to_string(msg->fromaddr()) << " to node: " + std::to_string(msg->toaddr()) << std::endl;
 		int dst = msg->toaddr();
 		int src = msg->fromaddr();
@@ -187,9 +195,10 @@ namespace hw {
 		/*
 		 * Case 1: When the packet has reached its final switch
 		 */
+		assert(src_switch == my_addr_);
+		send_credit_to_node(100000000, src);
 		if (src_switch == dst_switch) {
 			//send_credit_to_node(msg->num_bytes(), src);
-			send_credit_to_node(1000000, src);
 			send_packet_to_node(dst, electrical_delay, ev);
 			return; 
 		}
@@ -206,9 +215,22 @@ namespace hw {
 			// In this case, we are in the simplified
 			int src_group = ftop_simplified_->group_from_swid(src_switch);
 			int dst_group = ftop_simplified_->group_from_swid(dst_switch);
+			if (dst_switch == my_addr_) {
+				int offset = dst % nodes_per_switch_;
+				outport_handlers_[offset + switches_per_group_]->send_extra_delay(electrical_delay, ev);
+				return;
+			}
+			if (src_group == dst_group) {
+				//std::cout << "routing within group " << std::endl;
+				int local_port = ftop_simplified_->get_output_port(my_addr_, dst_switch);
+				outport_handlers_[local_port]->send_extra_delay(electrical_delay, ev);
+				return;
+			}
+			//std::cout << "should never see this ebver sber " << std::endl;
 			routable::path new_path;
-			ftop_simplified_->minimal_route_to_switch(my_addr_, dst_switch, new_path);
+			//ftop_simplified_->minimal_route_to_switch(my_addr_, dst_switch, new_path);
 			int outport = new_path.outport();
+			assert(ftop_simplified_->minimal_route_special_flexfly(src_switch, dst_switch, my_addr_, outport));
 			outport_handlers_[outport]->send_extra_delay(electrical_delay, ev);
 			return;
 			/*
