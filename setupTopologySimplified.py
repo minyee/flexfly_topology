@@ -1,7 +1,7 @@
 import sst
 import sst.macro
 
-opticalLatency = "0ps"
+opticalLatency = "100ps"
 smallLatency = "100ns"
 
 def makeUniLink(linkType,srcComp,srcId,srcPort,dstComp,dstId,dstPort,outLat=None,inLat=None):
@@ -80,6 +80,7 @@ class FlexflyInterconnectSimplified:
 
 	def buildTopology(self):
 		switchParams = self.params["switch"]
+		opticalNetworkID = self.numGroups * self.switchesPerGroup;
 		for i in range(self.numSwitches):
 			linkParams = switchParams["link"]
 			connections = self.system.switchConnections(i)
@@ -96,7 +97,10 @@ class FlexflyInterconnectSimplified:
 					dstSwitch = self.opticalNetwork
 				else:
 					dstSwitch = self.elecSwitches[dstId]
-				makeUniNetworkLink(srcSwitch, srcId, srcOutport, dstSwitch, dstId, dstInport, smallLatency)
+				latencyTemp = smallLatency
+				if (dstId == opticalNetworkID) or (srcId == opticalNetworkID):
+					latencyTemp = opticalLatency
+				makeUniNetworkLink(srcSwitch, srcId, srcOutport, dstSwitch, dstId, dstInport, latencyTemp)
 		return
 
 	def buildNodeConnections(self):
@@ -108,27 +112,6 @@ class FlexflyInterconnectSimplified:
 				switchPortIndex = self.switchesPerGroup - 1 + 1 + nodeIndex
 				makeUniLink("injection",node,index,0,switch,i,switchPortIndex,smallLatency)
 				makeUniLink("ejection",switch,i,switchPortIndex,node,index,0,smallLatency)
-
-	def buildIntraGroupConnections(self):
-		inports = [0] * self.numElecSwitches
-		outports = [0] * self.numElecSwitches
-		for group in range(self.numGroups):
-			for i in range(self.switchesPerGroup):
-				srcID = i + group * self.switchesPerGroup
-				srcSwitch = self.elecSwitches[srcID]
-				if i == self.switchesPerGroup - 1:
-					break
-				for j in range(i + 1, self.switchesPerGroup, 1):
-					dstID = j + group * self.switchesPerGroup
-					dstSwitch = self.elecSwitches[dstID]
-					linkName = "network %d:%d->%d:%d" % (srcID, outports[srcID] , dstID, inports[dstID])
-					makeUniLink(linkName, srcSwitch, srcID, outports[srcID], dstSwitch, dstID, inports[dstID], smallLatency)
-					linkName = "network %d:%d->%d:%d" % (dstID, outports[dstID] , srcID, inports[srcID])
-					makeUniLink(linkName, dstSwitch, dstID, outports[dstID], srcSwitch, srcID, inports[srcID], smallLatency)
-					outports[srcID] += 1
-					outports[dstID] += 1
-					inports[srcID] += 1
-					inports[dstID] += 1
 
 	def buildNodeConnections2(self):
 		for i in range(self.numGroups * self.switchesPerGroup):
@@ -158,19 +141,6 @@ class FlexflyInterconnectSimplified:
 		self.opticalNetwork.addParam("num_electrical_switches", self.numElecSwitches)
 		self.opticalNetwork.addParam("id", self.numGroups * self.switchesPerGroup)
 		return 
-
-	def buildOpticalNetworkLinks(self):
-		opticalNetworkPort = 0
-		i = 0
-		electricalSwitchPort = self.switchesPerGroup - 1
-		for elecSwitch in self.elecSwitches:
-			linkName = "opticalNetwork %d:%d->%d:%d" % (i,electricalSwitchPort,0,opticalNetworkPort)
-			link = sst.Link(linkName)
-			makeUniLink("elec->optical", elecSwitch, i, electricalSwitchPort, self.opticalNetwork, 3000, i, smallLatency)
-			makeUniLink("elec->optical", self.opticalNetwork, 3000, i, elecSwitch, i, electricalSwitchPort, smallLatency)
-			i += 1
-			opticalNetworkPort += 1
-		return
 
 	def buildLogPNetwork(self):
 		import re
@@ -227,9 +197,7 @@ class FlexflyInterconnectSimplified:
 		self.buildEndpoints()
 		if not islogP:
 			self.buildElectricalSwitches()
-			#self.buildIntraGroupConnections()
 			self.buildOpticalNetwork()
-			#self.buildOpticalNetworkLinks()
 			self.buildTopology()
 			self.buildNodeConnections()
 			self.buildLogPNetwork()			
