@@ -3,7 +3,7 @@ SRC := link_stealing.cc flexfly_topology_simplified.cc flexfly_optical_network.c
 
 CXX :=    libsst++
 CC :=     libsstcc
-CXXFLAGS := -fPIC
+CXXFLAGS := -fPIC -std=c++11
 CPPFLAGS := -I. -I$(HOME)/Programs/install/sst-core/clang/include -I$(HOME)/src/alglib-3.12/src 
 #CPPFLAGS := -I. -I$(HOME)/install/sstcore-7.1.0/include
 LIBDIR :=  

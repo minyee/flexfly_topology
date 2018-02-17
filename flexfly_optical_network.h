@@ -142,6 +142,7 @@ private:
 
   int num_electrical_switches_;
 
+  std::vector<std::vector<uint64_t>> g2g_traffic_matrix_;
   
 };
 

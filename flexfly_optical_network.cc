@@ -23,7 +23,11 @@ namespace hw {
 		inport_handler_.reserve(num_ports_);
 		outport_handler_.reserve(num_ports_);
 		//ftop_ = safe_cast(flexfly_topology_simplified, topology::static_topology(params));
-
+		g2g_traffic_matrix_.resize(num_groups_);
+		for (int i = 0; i < num_groups_; i++) {
+			g2g_traffic_matrix_[i].resize(num_groups_);
+			std::fill(g2g_traffic_matrix_[i].begin(), g2g_traffic_matrix_[i].end(), 0);
+		}
 		ftop_ = dynamic_cast<flexfly_topology *>(topology::static_topology(params));
 		if (ftop_ == nullptr) {
 			std::cout << "Flexfly optical network is working" << std::endl; 
@@ -48,6 +52,13 @@ namespace hw {
 
 	flexfly_optical_network::~flexfly_optical_network() { 
 		// Do nothing for now since all private member variables are allocated on the stack
+		std::cout << "deconstructor for optical network" << std::endl;
+		for (int i = 0; i < num_groups_; i++) {
+			for (int j = 0; j < num_groups_; j++) {
+				std::cout << std::to_string(g2g_traffic_matrix_[i][j]) << " ";
+			}
+			std::cout << std::endl;
+		}
 	}
 
 	void flexfly_optical_network::setup() {
@@ -118,6 +129,10 @@ namespace hw {
 		if (ftop_ == nullptr) {
 			int dst_switch = ftop_simplified_->node_to_switch(dst_node);
 			int src_switch = ftop_simplified_->node_to_switch(src_node);
+
+			int src_group = ftop_simplified_->group_from_swid(src_switch);
+			int dst_group = ftop_simplified_->group_from_swid(dst_switch);
+			g2g_traffic_matrix_[src_group][dst_group] += packet->num_bytes();
 			int outport;
 			//ftop_simplified_->minimal_route_to_switch_optical(src_switch, dst_switch, outport);
 			assert(ftop_simplified_->minimal_route_special_flexfly(src_switch, dst_switch, my_addr_, outport));

@@ -214,16 +214,16 @@ void add_to_path(std::vector<flexfly_path *> &path_collection,
  **/
 void clear_path_collections(std::vector<flexfly_path *> &path_collection, 
 								int dst_switch) {
-	std::cout << "clear_path_colletions in flexfly_routing_algo" << std::endl;
+	//std::cout << "clear_path_colletions in flexfly_routing_algo" << std::endl;
 	
 	if (path_collection[dst_switch] != nullptr) {
 		//assert
-		std::cout << "clear_path_colletions in flexfly_routing_algo1" << std::endl;
+		//std::cout << "clear_path_colletions in flexfly_routing_algo1" << std::endl;
 		//assert(path_collection[dst_switch]->path_length == path_collection[dst_switch]->path.size());
 		int path_len = path_collection[dst_switch]->path_length;
-		assert(path_len == path_collection[dst_switch]->path.size());
+		//assert(path_len == path_collection[dst_switch]->path.size());
 		for (int i = 0; i < path_collection[dst_switch]->path.size(); i++) {
-			std::cout << "clear_path_colletions in flexfly_routing_algo2" << std::endl;
+			//std::cout << "clear_path_colletions in flexfly_routing_algo2" << std::endl;
 			if (path_collection[dst_switch]->path[i] != nullptr)
 				delete path_collection[dst_switch]->path[i];
 		}

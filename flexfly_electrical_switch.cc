@@ -24,13 +24,14 @@ namespace hw {
 		my_addr_ = params->get_int_param("id");
 		radix_ = params->get_int_param("total_radix");
 		switches_per_group_ = params->get_int_param("switches_per_group");
-
+		std::cout << "flexfly electrical switch called?" << std::endl;
 		num_groups_ = params->get_int_param("num_groups");
 		nodes_per_switch_ = radix_ - switches_per_group_;
 		inport_handlers_.reserve(radix_);
 		outport_handlers_.reserve(radix_);
 		queue_length_ = new int[radix_];
-
+		group_to_group_bytes_sent_.resize(num_groups_);
+		std::fill(group_to_group_bytes_sent_.begin(),  group_to_group_bytes_sent_.end(), 0);
 		/*
 		 * Grab the link parameters like electrical and optical link bandwidths
 		 * and even send and credit latencies
@@ -55,6 +56,11 @@ namespace hw {
 	}
 
 	flexfly_electrical_switch::~flexfly_electrical_switch() {
+		std::cout << "deconstructor for switch: " << std::to_string(my_addr_) << std::endl;
+		for (auto entry : group_to_group_bytes_sent_) {
+			std::cout << std::to_string(entry) << " ";
+		}
+		std::cout << std::endl;
 		delete [] queue_length_;
 	}
 
@@ -228,6 +234,7 @@ namespace hw {
 			}
 			//std::cout << "should never see this ebver sber " << std::endl;
 			routable::path new_path;
+			group_to_group_bytes_sent_[dst_group] += msg->num_bytes();
 			//ftop_simplified_->minimal_route_to_switch(my_addr_, dst_switch, new_path);
 			int outport = new_path.outport();
 			assert(ftop_simplified_->minimal_route_special_flexfly(src_switch, dst_switch, my_addr_, outport));

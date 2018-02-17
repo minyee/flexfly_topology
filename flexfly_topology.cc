@@ -377,7 +377,7 @@ bool flexfly_topology::switch_id_slot_filled(switch_id sid) const {
    * prints out the all the connections for each switch
    */
   void flexfly_topology::print_port_connection_for_switch(switch_id swid) const {
-    std::unordered_map<switch_id, std::vector<switch_link*>>::const_iterator tmp_iter = 
+        std::unordered_map<switch_id, std::vector<switch_link*>>::const_iterator tmp_iter = 
                                         switch_outport_connection_map_.find(swid);
     if (tmp_iter == switch_outport_connection_map_.end()) {
       return;
@@ -385,25 +385,25 @@ bool flexfly_topology::switch_id_slot_filled(switch_id sid) const {
 
     const std::vector<switch_link*>& connection_vector = tmp_iter->second;
 
-    std::stringstream message;
+    std::string message;
     int i = 0;
     for (switch_link* sl_ptr : connection_vector) {
       // check if null, if null have to throw an error 
       if (sl_ptr) {
-        message << "Dest switch_id: " << std::to_string(sl_ptr->dest_sid);
-        message << " Dest inport: " << std::to_string(sl_ptr->dest_inport);
-        message << " Link type: ";
+        message += ("Dest switch_id: " + std::to_string(sl_ptr->dest_sid));
+        message += (" Dest inport: " + std::to_string(sl_ptr->dest_inport));
+        message += " Link type: ";
         if (sl_ptr->type == Electrical) {
-          message << "ELECTRICAL" << std::endl;
+          message += ("ELECTRICAL\n");
         } else {
-          message << "OPTICAL" << std::endl;
+          message += ("OPTICAL\n");
         }
       } else {
         spkt_abort_printf("A switch link with swid: %d is null\n", swid);
       }
       i++;
     }
-    std::cout << message.str(); 
+    std::cout << message; 
   };
 
 

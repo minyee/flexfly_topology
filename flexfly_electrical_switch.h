@@ -113,6 +113,7 @@ flexfly_topology* ftop_;
 flexfly_topology_simplified* ftop_simplified_;
 int num_groups_;
 
+std::vector<int64_t> group_to_group_bytes_sent_;
  //void (std::vector<>)
 /*
  * IMPORTANT: ADDED (01/17/2018 by minyee)
